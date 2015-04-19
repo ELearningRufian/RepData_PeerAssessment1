@@ -152,7 +152,11 @@ the median daily steps has a very small change from `r daily_median` to `r nogap
 
 ## Differences in activity patterns between weekdays and weekends
 ```{r}
-plot(x=interval_weekday$interval,y=interval_weekday$mean_steps,type="l")
-plot(x=interval_weekend$interval,y=interval_weekend$mean_steps,type="l")
-print(xyplot(interval_weekpart$mean_steps ~ interval_weekpart$interval, factor = interval_weekpart$is.weekend, type="l"))
+title <- "Activity patterns on weekdays and weekends"
+print(xyplot(interval_weekpart$mean_steps ~ interval_weekpart$interval | interval_weekpart$is.weekend, 
+type="l", 
+layout = c(1, 2),
+xlab = "Interval",
+ylab = "Number of Steps"
+))
 ```
