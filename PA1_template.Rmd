@@ -51,6 +51,7 @@ dataset.
 library(knitr)
 library(lubridate)
 library(dplyr)
+library(lattice)
 
 activity <- read.csv(unz("activity.zip","activity.csv"))
 
@@ -60,6 +61,33 @@ summarize(total_steps = sum(steps)) %>%
 filter(!is.na(total_steps)) 
 
 interval_activity <- activity %>%
+group_by(interval) %>%
+summarize(mean_steps = mean(steps, na.rm = 1))
+
+missing_values <- activity %>%
+filter(!is.na(steps)) %>%
+count()
+
+activity_nogap <- activity
+activity_nogap[is.na(activity$steps), "steps"] <- interval_activity$mean_steps
+
+daily_nogap <- activity_nogap %>%
+group_by(date) %>%
+summarize(total_steps = sum(steps)) %>%
+filter(!is.na(total_steps)) 
+
+activity_weekpart <- activity_nogap %>%
+mutate(is.weekend = factor( 
+    (weekdays(ymd(date)) == "Saturday" | weekdays(ymd(date)) == "Sunday"),
+    labels=c("weekday","weekend")))
+
+interval_weekday <- activity_weekpart %>%
+filter(is.weekend == "weekday") %>%
+group_by(interval) %>%
+summarize(mean_steps = mean(steps, na.rm = 1))
+
+interval_weekend <- activity_weekpart %>%
+filter(is.weekend == "weekend") %>%
 group_by(interval) %>%
 summarize(mean_steps = mean(steps, na.rm = 1))
 ```
@@ -101,17 +129,6 @@ plot(x = interval_activity$interval,
 
 ## Imputing missing values
 ```{r}
-missing_values <- activity %>%
-filter(!is.na(steps)) %>%
-count()
-
-activity_nogap <- activity
-activity_nogap[is.na(activity$steps), "steps"] <- interval_activity$mean_steps
-daily_nogap <- activity_nogap %>%
-group_by(date) %>%
-summarize(total_steps = sum(steps)) %>%
-filter(!is.na(total_steps)) 
-
 title <- "Total Daily Steps with interpolated gaps"
 nogap_mean <- as.integer(mean(daily_nogap$total_steps))
 nogap_median <- as.integer(median(daily_nogap$total_steps))
@@ -126,10 +143,11 @@ hist(daily_nogap$total_steps,
 
 The number of missing values is `r missing_values` but we can replace them
 with the average for the corresponding interval. After filling the gaps
-the mean daily steps stays the same at `r daily_mean` = `r nogap_mean` and
+the mean daily steps stays the same at `r daily_mean` = `r nogap_mean`, and
 the median daily steps has a very small change from `r daily_median` to `r nogap_median`
 
 ## Differences in activity patterns between weekdays and weekends
 ```{r}
-
+plot(x=interval_weekday$interval,y=interval_weekday$mean_steps,type="l")
+plot(x=interval_weekend$interval,y=interval_weekend$mean_steps,type="l")
 ```
