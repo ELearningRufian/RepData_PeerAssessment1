@@ -5,21 +5,104 @@ output:
     keep_md: true
 ---
 
+## Introduction
 
-## Loading and preprocessing the data
+It is now possible to collect a large amount of data about personal
+movement using activity monitoring devices such as a
+[Fitbit](http://www.fitbit.com), [Nike
+Fuelband](http://www.nike.com/us/en_us/c/nikeplus-fuelband), or
+[Jawbone Up](https://jawbone.com/up). These type of devices are part of
+the "quantified self" movement -- a group of enthusiasts who take
+measurements about themselves regularly to improve their health, to
+find patterns in their behavior, or because they are tech geeks. But
+these data remain under-utilized both because the raw data are hard to
+obtain and there is a lack of statistical methods and software for
+processing and interpreting the data.
 
+This assignment makes use of data from a personal activity monitoring
+device. This device collects data at 5 minute intervals through out the
+day. The data consists of two months of data from an anonymous
+individual collected during the months of October and November, 2012
+and include the number of steps taken in 5 minute intervals each day.
 
+## Data
 
-## What is mean total number of steps taken per day?
+The data for this assignment can be downloaded from:
 
+* Dataset: [Activity monitoring data](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip) [52K]
 
+The variables included in this dataset are:
 
-## What is the average daily activity pattern?
+* **steps**: Number of steps taking in a 5-minute interval (missing
+    values are coded as `NA`)
 
+* **date**: The date on which the measurement was taken in YYYY-MM-DD
+    format
 
+* **interval**: Identifier for the 5-minute interval in which
+    measurement was taken
+
+The dataset is stored in a comma-separated-value (CSV) file and there
+are a total of 17,568 observations in this
+dataset.
+
+## Loading and preprocessing data
+```{r}
+library(knitr)
+library(lubridate)
+library(dplyr)
+
+activity <- read.csv(unz("activity.zip","activity.csv"))
+
+daily_activity <- activity %>%
+group_by(date) %>%
+summarize(total_steps = sum(steps)) %>%
+filter(!is.na(total_steps)) 
+
+interval_activity <- activity %>%
+group_by(interval) %>%
+summarize(mean_steps = mean(steps, na.rm = 1))
+```
+
+## Mean total number of steps taken per day
+```{r}
+title <- "Total Daily Steps"
+subtitle <- paste(
+	"Mean =", as.integer(mean(daily_activity$total_steps)), "steps,",
+	"Median =", as.integer(median(daily_activity$total_steps)),"steps")
+hist(daily_activity$total_steps, 
+	main = paste(title, subtitle, sep = "\n"),
+	xlab = "Total Steps",
+	breaks = 10)
+```
+
+## Average daily activity pattern
+```{r}
+title <- "Average daily activity"
+max_period <- max(interval_activity$mean_steps) * 5
+max_period_h <- as.integer(max_period / 60)
+max_period_m <- as.integer(max_period %% 60)
+
+subtitle <- paste(
+    "Period max average steps =",
+    max_period_h,
+    " hours and",
+    max_period_m,
+    "minutes")
+plot(x = interval_activity$interval, 
+    y = interval_activity$mean_steps, 
+    type = "l",
+    main = paste(title, subtitle, sep = "\n"),
+    xlab = "Average Steps",
+    ylab = "Daily 5-minute interval")
+```
 
 ## Imputing missing values
+```{r}
 
+```
 
+## Differences in activity patterns between weekdays and weekends
+```{r}
 
-## Are there differences in activity patterns between weekdays and weekends?
+```
