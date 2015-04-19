@@ -67,9 +67,11 @@ summarize(mean_steps = mean(steps, na.rm = 1))
 ## Mean total number of steps taken per day
 ```{r}
 title <- "Total Daily Steps"
+daily_mean <- as.integer(mean(daily_activity$total_steps))
+daily_median <- as.integer(median(daily_activity$total_steps))
 subtitle <- paste(
-	"Mean =", as.integer(mean(daily_activity$total_steps)), "steps,",
-	"Median =", as.integer(median(daily_activity$total_steps)),"steps")
+	"Mean =", daily_mean, "steps,",
+	"Median =", daily_median,"steps")
 hist(daily_activity$total_steps, 
 	main = paste(title, subtitle, sep = "\n"),
 	xlab = "Total Steps",
@@ -99,8 +101,33 @@ plot(x = interval_activity$interval,
 
 ## Imputing missing values
 ```{r}
+missing_values <- activity %>%
+filter(!is.na(steps)) %>%
+count()
 
+activity_nogap <- activity
+activity_nogap[is.na(activity$steps), "steps"] <- interval_activity$mean_steps
+daily_nogap <- activity_nogap %>%
+group_by(date) %>%
+summarize(total_steps = sum(steps)) %>%
+filter(!is.na(total_steps)) 
+
+title <- "Total Daily Steps with interpolated gaps"
+nogap_mean <- as.integer(mean(daily_nogap$total_steps))
+nogap_median <- as.integer(median(daily_nogap$total_steps))
+subtitle <- paste(
+	"Mean =", nogap_mean, "steps,",
+	"Median =", nogap_median,"steps")
+hist(daily_nogap$total_steps, 
+	main = paste(title, subtitle, sep = "\n"),
+	xlab = "Total Steps",
+	breaks = 10)
 ```
+
+The number of missing values is `r missing_values` but we can replace them
+with the average for the corresponding interval. After filling the gaps
+the mean daily steps stays the same at `r daily_mean` = `r nogap_mean` and
+the median daily steps has a very small change from `r daily_median` to `r nogap_median`
 
 ## Differences in activity patterns between weekdays and weekends
 ```{r}
