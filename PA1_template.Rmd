@@ -90,6 +90,10 @@ interval_weekend <- activity_weekpart %>%
 filter(is.weekend == "weekend") %>%
 group_by(interval) %>%
 summarize(mean_steps = mean(steps, na.rm = 1))
+
+interval_weekpart <- activity_weekpart %>%
+group_by(interval, is.weekend) %>%
+summarize(mean_steps = mean(steps, na.rm = 1))
 ```
 
 ## Mean total number of steps taken per day
@@ -150,4 +154,5 @@ the median daily steps has a very small change from `r daily_median` to `r nogap
 ```{r}
 plot(x=interval_weekday$interval,y=interval_weekday$mean_steps,type="l")
 plot(x=interval_weekend$interval,y=interval_weekend$mean_steps,type="l")
+print(xyplot(interval_weekpart$mean_steps ~ interval_weekpart$interval, factor = interval_weekpart$is.weekend, type="l"))
 ```
